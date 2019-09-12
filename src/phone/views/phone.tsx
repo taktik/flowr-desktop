@@ -4,7 +4,7 @@ import { IpcRenderer } from 'electron'
 import { WindowModes } from '../WindowModes'
 import { MainView } from './mainView'
 import './icons'
-import { CallState, CallStateMachine, INCOMING_STATE, OUTGOING_STATE, OFF_HOOK_STATE } from '../stateMachines/callStateMachine'
+import { CallState, CallStateMachine, INCOMING_STATE } from '../stateMachines/callStateMachine'
 import { fsm } from 'typescript-state-machine'
 import TransitionListener = fsm.ListenerRegistration
 import { PhoneStateMachine } from '../stateMachines/factory'
@@ -125,6 +125,11 @@ export class Phone extends React.Component<PhoneProps, PhoneAppState> {
     this.callStateMachine.terminate()
   }
 
+  hide() {
+    this.hangup()
+    this.ipcSend('phone-hide')()
+  }
+
   render() {
     return (
       <div className={this.props.className}>
@@ -138,7 +143,7 @@ export class Phone extends React.Component<PhoneProps, PhoneAppState> {
             hangup={this.hangup.bind(this)}
             mute={this.ipcSend('phone-mute')}
             callingNumber={this.state.callingNumber}/>
-        <UpperRightIcon onClick={this.ipcSend('phone-hide')} icon="times" />
+        <UpperRightIcon onClick={this.hide.bind(this)} icon="times" />
       </div>
     )
   }

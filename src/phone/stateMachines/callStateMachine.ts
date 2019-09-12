@@ -66,7 +66,7 @@ export class CallStateMachine extends StateMachineImpl<CallState> {
   set callingNumber(caller: string) {
     const splitCaller = caller.replace(/[><]/g, '').split(':')
     const numberAndServer = splitCaller[1]
-    const callingNumber = numberAndServer ? numberAndServer.split('@')[0] : ''
+    const callingNumber = numberAndServer ? numberAndServer.split('@')[0] : splitCaller[0] || ''
     this._callingNumber = callingNumber
   }
 
@@ -109,10 +109,12 @@ export class CallStateMachine extends StateMachineImpl<CallState> {
   terminate() {
     switch (this.state) {
       case INCOMING_STATE:
-      case OUTGOING_STATE:
       case ANSWERED_STATE:
       case CALL_OUT_STATE:
         this._dispatcher.send('terminate')
+        break
+      case OUTGOING_STATE:
+        this.setState(OFF_HOOK_STATE)
         break
       case OFF_HOOK_STATE:
         // Nothing to do
@@ -130,6 +132,7 @@ export class CallStateMachine extends StateMachineImpl<CallState> {
 
   call(callNumber: string) {
     this._dispatcher.send('call', { number: callNumber })
+    this._callingNumber = callNumber
     this.setState(OUTGOING_STATE)
     this._outGoingCallTimeout = setTimeout(() => this.setState(OFF_HOOK_STATE), 60000)
   }

@@ -3,10 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { CALL_OUT_STATE, ANSWERED_STATE, CallState, OUTGOING_STATE } from '../../stateMachines/callStateMachine'
 import styled from 'styled-components'
 import { HangupPhoneIcon } from '../phoneButtons'
-import { FlexRowCenter } from '../flex'
+import { FlexRowCenter, FlexColumnCenter } from '../flex'
 import { Translator } from '../../../translator/translator'
 
 import './Calling.css'
+import { robotoMedium } from '~/shared/mixins'
+import { RemoteCodes } from '../../remote'
 
 interface CallingProps {
   mode: CallState
@@ -71,13 +73,26 @@ const Rotating = styled(FontAwesomeIcon)`
   }
 `
 
+const PhoneNumber = styled.h1`
+  color: white;
+  ${robotoMedium}
+`
+
 export class Calling extends React.Component<CallingProps, CallingState> {
   private tickRequest: number | null = null
   private firstTick: number
 
+  private onKeyDown(e: KeyboardEvent) {
+    if (e.code === RemoteCodes.HANGUP_GESTURE || e.code === RemoteCodes.HANGUP_KEY) {
+      this.props.hangup()
+    }
+  }
+
   constructor(props: CallingProps) {
     super(props)
     this.state = { elapsedTime: formatElapsedTime(0), displayKeyPad: false }
+
+    this.onKeyDown = this.onKeyDown.bind(this)
   }
 
   startTick() {
@@ -116,10 +131,10 @@ export class Calling extends React.Component<CallingProps, CallingState> {
     return (
       <div className="calling-container">
           {title}
-          <div>
-            <h1 className="phoneNumber">{this.props.callingNumber}</h1>
+          <FlexColumnCenter>
+            <PhoneNumber>{this.props.callingNumber}</PhoneNumber>
             { elapsedTime }
-          </div>
+          </FlexColumnCenter>
           <FlexRowCenter className={this.props.className}>
             {/*<div>
               <MuteMicIcon mute={this.props.mute}/>
@@ -139,7 +154,12 @@ export class Calling extends React.Component<CallingProps, CallingState> {
     )
   }
 
+  componentDidMount() {
+    document.addEventListener('keydown', this.onKeyDown)
+  }
+
   componentWillUnmount() {
+    document.removeEventListener('keydown', this.onKeyDown)
     if (this.tickRequest) {
       cancelAnimationFrame(this.tickRequest)
     }
