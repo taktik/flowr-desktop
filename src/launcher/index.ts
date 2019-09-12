@@ -173,13 +173,13 @@ function unmute() {
 }
 
 function muteWindow(windowToMute: BrowserWindow) {
-  if (!windowToMute.webContents.isAudioMuted) {
+  if (!windowToMute.webContents.isAudioMuted()) {
     windowToMute.webContents.setAudioMuted(true)
   }
 }
 
 function unmuteWindow(windowToMute: BrowserWindow) {
-  if (windowToMute.webContents.isAudioMuted) {
+  if (windowToMute.webContents.isAudioMuted()) {
     windowToMute.webContents.setAudioMuted(false)
   }
 }

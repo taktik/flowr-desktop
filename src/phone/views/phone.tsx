@@ -4,7 +4,7 @@ import { IpcRenderer } from 'electron'
 import { WindowModes } from '../WindowModes'
 import { MainView } from './mainView'
 import './icons'
-import { CallState, CallStateMachine, INCOMING_STATE } from '../stateMachines/callStateMachine'
+import { CallState, CallStateMachine, INCOMING_STATE, OUTGOING_STATE, OFF_HOOK_STATE } from '../stateMachines/callStateMachine'
 import { fsm } from 'typescript-state-machine'
 import TransitionListener = fsm.ListenerRegistration
 import { PhoneStateMachine } from '../stateMachines/factory'
