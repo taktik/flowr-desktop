@@ -29,8 +29,5 @@
   },
   "mac": {
     "category": "public.app-category.navigation"
-  },
-  "electronDownload": {
-    "mirror": "https://github.com/castlabs/electron-releases/releases/download/v"
   }
 }
