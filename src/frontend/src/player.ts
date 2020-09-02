@@ -5,7 +5,6 @@ import { ITsDecryptorConfig, TsDecryptor } from '@taktik/ts-decryptor'
 import { UdpStreamer, UdpStreamerError, UdpStreamerErrors } from '@taktik/udp-streamer'
 import { ICurrentStreams } from './interfaces/currentStreams'
 import { IStreamTrack } from './interfaces/streamTrack'
-import { FfmpegCommand } from 'fluent-ffmpeg'
 import { PlayerError, PlayerErrors } from './playerError'
 import { FlowrFfmpeg } from './ffmpeg'
 import { Readable, Writable, Stream, PassThrough } from 'stream'
@@ -92,12 +91,10 @@ export class Player {
   }
 
   pausestream(evt: IpcMainEvent) {
-    this.streams?.ffmpeg.kill('SIGSTOP')
     evt.sender.send('streampaused')
   }
 
   resumestream(evt: IpcMainEvent) {
-    this.streams?.ffmpeg.kill('SIGCONT')
     evt.sender.send('streamresumed')
   }
 
@@ -131,6 +128,15 @@ export class Player {
     }
   }
 
+  /**
+   * Using ffprobe, retrieve the type of stream (audio or video)
+   * This function is deprecated because it requires the frontend to make several calls through ipc
+   * This complexifies the playback flow, when all could be done in openUrl
+   * To be removed in flowr-desktop v2
+   * @param evt Original event
+   * @param url URL of the stream to check
+   * @deprecated
+   */
   async typeofstream(evt: IpcMainEvent, url: string) {
     const sendTypeOfStream = (stream: ICurrentStreams) => {
       if (stream.video?.tracks?.length > 0) {
@@ -141,11 +147,15 @@ export class Player {
         evt.sender.send('typeofstream', 'audio')
       }
     }
+
+    // Attempt to find cached data for the given url
     const channelData = this.flowrStore.get('channelData')
     const stream = channelData[url]
+    // If we already have info for this url, return immediately...
     if (stream) {
       sendTypeOfStream(stream)
     } else {
+      // ...else retrieve metadata using ffprobe
       try {
         await this.stopping
         const pipeline = await this.getStreamingPipeline(url)
@@ -164,19 +174,28 @@ export class Player {
     }
   }
 
+  /**
+   * This function is called upon receiving an "openurl" message through ipc
+   * @param {IpcMainEvent} evt original event
+   * @param {string} url url to play
+   */
   async openUrl(evt: IpcMainEvent, url: string): Promise<void> {
     try {
       console.log('----------- openUrl', url)
       await this.stopping
-      const channelData = this.flowrStore.get('channelData')
-      const localCurrentStream: ICurrentStreams | undefined = channelData[url]
+
       const pipeline = await this.getStreamingPipeline(url)
 
-      // If we already have info for this url, play it immediately
+      // Attempt to find cached data for the given url
+      const channelData = this.flowrStore.get('channelData')
+      const localCurrentStream: ICurrentStreams | undefined = channelData[url]
+
+      // If we already have info for this url, play it immediately...
       if (localCurrentStream) {
         this.currentStreams = localCurrentStream
         await this.playUrl(pipeline, localCurrentStream, evt)
       }
+      // ... else wait before retrieving ffprobe metadata
       try {
         const metadata: Ffmpeg.FfprobeData = await this.retrieveMetadata(pipeline)
         const newStreamData: ICurrentStreams = this.processStreams(metadata.streams, url)
@@ -211,7 +230,7 @@ export class Player {
     }
   }
 
-  stop(shouldFlush: boolean = false, ffmpegIsDead: boolean = false): Promise<void> {
+  stop(shouldFlush: boolean = false): Promise<void> {
     return this.stopping = this.stopping
       .then(() => new Promise(async resolve => {
         try {
@@ -224,7 +243,7 @@ export class Player {
           }
           this.dispatcher?.clear()
           if (this.streams) {
-            await this.terminateStreams(this.streams, ffmpegIsDead)
+            await this.terminateStreams(this.streams)
             this.streams = undefined
           }
           this.streamer?.clear(shouldFlush)
@@ -236,22 +255,10 @@ export class Player {
       }))
   }
 
-  async terminateStreams(streams: IPlayerStreams, ffmpegIsDead: boolean = false): Promise<void> {
+  async terminateStreams(streams: IPlayerStreams): Promise<void> {
     if (streams.input instanceof Stream) {
       await this.destroyStream(streams.input)
     }
-    if (!ffmpegIsDead) {
-      await this.killFfmpeg(streams.ffmpeg)
-    }
-  }
-
-  // We need to wait a bit for the process to terminate
-  // this prevents ffmpeg to catch output stream "close" event and throw an error
-  killFfmpeg(process: FfmpegCommand): Promise<void> {
-    return new Promise((resolve) => {
-      process.on('error', resolve)
-      process.kill('SIGKILL')
-    })
   }
 
   destroyStream(stream: Readable | Writable): Promise<void> {
@@ -261,9 +268,18 @@ export class Player {
     })
   }
 
+  /**
+   * Spawn an ffprobe process to retrieve stream metadata
+   * @param input Stream input to use, either a string to be passed to ffmpeg or a Readable stream
+   */
   async retrieveMetadata(input: string | Dispatcher): Promise<Ffmpeg.FfprobeData> {
-    const ffprobeInput = this.getStreamInput(input)
+    let ffprobeInput: string | Readable
 
+    if (input instanceof Dispatcher) {
+      ffprobeInput = input.pipe(new PassThrough())
+    } else {
+      ffprobeInput = input
+    }
     try {
       const { process, data } = await this.flowrFfmpeg.ffprobe(ffprobeInput, { timeout: 30 })
       this.ffprobeProcess = process
@@ -271,11 +287,14 @@ export class Player {
       return ffprobeData
     } catch (e) {
       let errorCode = PlayerErrors.UNKNOWN
+
+      // If message contains SIGKILL, we terminated the process on purpose
       if (e.message.includes('SIGKILL')) {
         errorCode = PlayerErrors.TERMINATED
       }
       throw new PlayerError(e.message, errorCode)
     } finally {
+      // Destroy input if we passed a stream (not a string)
       this.ffprobeProcess = undefined
       if (ffprobeInput instanceof Readable) {
         await this.destroyStream(ffprobeInput)
@@ -283,6 +302,11 @@ export class Player {
     }
   }
 
+  /**
+   * Finds out if the current audio/video/subtitle tracks we are playing still exist with the newest metadata
+   * @param newStreamData Most recently retrieved stream metadata
+   * @param localCurrentStream Cached stream metadata
+   */
   hasStreamChanged(newStreamData: ICurrentStreams, localCurrentStream: ICurrentStreams | undefined): boolean {
     const isSameUrlButDifferentCodec: boolean = !!this.currentStreams &&
         this.currentStreams.url === localCurrentStream?.url &&
@@ -303,7 +327,7 @@ export class Player {
     if (this.currentStreams) {
       // if conversion error, keep trying
       // replay will kill previous process
-      await this.replay(this.currentStreams.url, this.currentStreams, evt, true)
+      await this.replay(this.currentStreams.url, this.currentStreams, evt)
     }
   }
 
@@ -312,7 +336,7 @@ export class Player {
       // reset to default audio and subtitles and try again
       this.currentStreams.audio.currentStream = (this.currentStreams.audio.tracks.length > 0) ? this.currentStreams.audio.tracks[0].pid : -1
       this.currentStreams.subtitles.currentStream = -1
-      await this.replay(this.currentStreams.url, this.currentStreams, evt, true)
+      await this.replay(this.currentStreams.url, this.currentStreams, evt)
     }
   }
 
@@ -390,30 +414,22 @@ export class Player {
     return playInput
   }
 
-  getFfmpegStream(evt: IpcMainEvent, input: string | Readable, streamToPlay: ICurrentStreams): FfmpegCommand {
-    if (streamToPlay.video.tracks.length > 0) {
-      const videoStreamChannel = streamToPlay.video.tracks[0].pid
-      const audiostreamChannel = streamToPlay.audio.currentStream
-      const subtitleStreamChannel = streamToPlay.subtitles.currentStream
-      const isDeinterlacingEnabled = this.flowrStore.get('deinterlacing')
-      return this.flowrFfmpeg.getVideoMpegtsPipeline(input, videoStreamChannel, audiostreamChannel, subtitleStreamChannel, isDeinterlacingEnabled, this.getErrorHandler(evt))
-    }
-    if (streamToPlay.audio.tracks.length > 0) {
-      return this.flowrFfmpeg.getAudioMpegtsPipeline(input, this.getErrorHandler(evt))
-    }
-    throw new PlayerError('No stream', PlayerErrors.NO_STREAM)
-  }
-
   async playUrl(urlOrDispatcher: string | Dispatcher, streamToPlay: ICurrentStreams, evt: IpcMainEvent) {
     if (this.replayOnErrorTimeout) {
       clearTimeout(this.replayOnErrorTimeout)
     }
-    const input = this.getStreamInput(urlOrDispatcher)
-    const ffmpeg = this.getFfmpegStream(evt, input, streamToPlay)
+    let input: Readable
+
+    if (urlOrDispatcher instanceof Dispatcher) {
+      input = urlOrDispatcher.pipe(new PassThrough())
+    } else {
+      input = await this.connectUdpStreamer(urlOrDispatcher)
+    }
+
     const streamer = this.streamer || (this.streamer = new IpcStreamer(this.ipcStreamerConfig))
     streamer.sender = evt.sender
-    ffmpeg.pipe(streamer, { end: false })
-    this.streams = { input, ffmpeg }
+    input.pipe(streamer, { end: false })
+    this.streams = { input }
 
     if (input instanceof Readable) {
       input.on('error', async (error: Error) => {
@@ -425,8 +441,8 @@ export class Player {
     }
   }
 
-  async replay(url: string, streamToPlay: ICurrentStreams, evt: IpcMainEvent, isDead: boolean = false) {
-    await this.stop(true, isDead)
+  async replay(url: string, streamToPlay: ICurrentStreams, evt: IpcMainEvent) {
+    await this.stop(true)
     const pipeline = await this.getStreamingPipeline(url)
     await this.playUrl(pipeline, streamToPlay, evt)
   }
