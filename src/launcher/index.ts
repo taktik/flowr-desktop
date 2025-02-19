@@ -28,6 +28,7 @@ import initComponents from '../wexond/extensions/components'
 import { WexondOptions } from '../wexond/main/app-window'
 import { getMigrateUserPreferences } from './migration/fromFlowrClientToFlowrPcClient'
 import {init as initBeiReader} from "../beidReader/beid";
+import {init as initPrinterProcess, PrinterProcessHandler} from "../printer/printer-process-handler";
 
 
 initializeLogging()
@@ -252,7 +253,9 @@ async function main() {
 
       ipcMain.on('flowrLanguageChanged', (e: Event, lang: string) => applicationManager.languageChanged(lang))
       // ADD check if bei_reader should be init
-      initBeiReader(flowrWindow.webContents)
+      // initBeiReader(flowrWindow.webContents)
+      console.log('is defined: ', !!flowrWindow.webContents)
+      PrinterProcessHandler.init(flowrWindow.webContents)
     } catch (e) {
       console.error('Error in init', e)
     }
