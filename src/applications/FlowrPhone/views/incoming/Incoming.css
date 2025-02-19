@@ -1,12 +1,24 @@
 .incoming-call-container {
     width: calc(100% - 80px);
     height: 100%;
-    margin: 0 0 0 80px;
+    margin: 0 0 8px 80px;
     display: flex;
     flex-flow: column nowrap;
     justify-content: space-around;
     align-items: stretch;
     background: rgba(0,0,0,0.8);
+
+    .warning {
+        font-family: 'Roboto', Arial, Helvetica, sans-serif;
+        font-size: 32px;
+        font-weight: normal;
+        color: white;
+        text-align: center;
+        margin: 12px 0;
+        height: auto;
+        flex-grow: 1;
+        width: 100%;
+    }
 }
 
 .title{
@@ -34,7 +46,7 @@
 }
 
 .buttons-container{
-    height: 50%;
+    height: 30%;
     flex-grow: 2;
 }
 

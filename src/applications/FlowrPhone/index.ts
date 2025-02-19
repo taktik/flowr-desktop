@@ -11,6 +11,8 @@ export type OpenPhoneProps = {
   currentUser?: string,
   show?: boolean,
   lang?: string,
+  clearAppDataOnStart?: boolean,
+  applyExternalPhoneNumberPrefix?: boolean,
 }
 
 interface PhoneOptions extends ApplicationOptions {
@@ -60,8 +62,7 @@ export function create(options: PhoneOptions): PhoneWindow {
       win.removeListener('blur', win.focus)
     }
   }
-  const { registerProps, lang, history, favorites, currentUser } = options.config
-
+  const { registerProps, lang, history, favorites, currentUser, clearAppDataOnStart, applyExternalPhoneNumberPrefix } = options.config
   const phoneAppProps = {
     phoneServer: options.flowrWindow.phoneServerUrl,
     capabilities: options.capabilities,
@@ -71,6 +72,8 @@ export function create(options: PhoneOptions): PhoneWindow {
     history,
     favorites,
     currentUser,
+    clearAppDataOnStart,
+    applyExternalPhoneNumberPrefix,
   }
   ipcMain.on('phone.incoming-call', (() => {
     options.flowrWindow.webContents.send('send-statistic-report', {

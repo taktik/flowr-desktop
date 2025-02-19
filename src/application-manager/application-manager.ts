@@ -58,7 +58,18 @@ export class ApplicationManager {
       const preload = buildApplicationPreloadPath(name)
       const index = getApplicationIndexUrl(name)
       const store = storeManager.createStore<Record<string, any>>(name, { defaults: {} })
-      const clearStore = this.flowrStore?.get('clearAppDataOnStart') ?? false
+      let clearStore = false
+      const applicationsOptions = this.flowrStore?.get('applications')
+
+      switch (name) {
+        case 'FlowrPhone': {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const appOptions = (applicationsOptions ?? { 'FlowrPhone': { clearAppDataOnStart: false } })['FlowrPhone']
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          clearStore = appOptions.clearAppDataOnStart ?? false
+          break
+        }
+      }
 
       if (clearStore) {
         // Clear application storage on client start
@@ -76,6 +87,7 @@ export class ApplicationManager {
         index,
         store,
         canOpen,
+        config: (this.flowrStore?.get('applications')?.[name] ?? {}) as { [key:string]: any },
       }
       this.logger.info('Successfully registered app', name)
     } catch (e) {
@@ -137,7 +149,7 @@ export class ApplicationManager {
 
     const processConfig = (applicationName: string, config: ApplicationInitConfig) => {
       this.applications[applicationName].capabilities = config.capabilities || {}
-      this.applications[applicationName].config = config.config || {}
+      this.applications[applicationName].config = { ...this.applications[applicationName].config, ...config.config } || {}
       initialized.push(config.application)
     }
 
@@ -175,11 +187,11 @@ export class ApplicationManager {
 
       if (this.isRegistered(appName)) {
         const application = this.applications[appName]
-        const openConfig = openAppConfig.config || {}
+        const openConfig = { ...application.config, ...(openAppConfig.config || {}) }
         let applicationWindow = this.activeWindows[appName]
 
         if (!applicationWindow) {
-          const config = { ...application.config, ...openConfig }
+          const config = { ...openConfig }
           applicationWindow = this.activeWindows[appName] = application.create({
             config,
             preload: application.preload,

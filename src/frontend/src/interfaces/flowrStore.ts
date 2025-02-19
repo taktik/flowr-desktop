@@ -18,9 +18,10 @@ export type VirtualKeyboardConfig = {
 }
 
 export interface IFlowrStore {
-  windowBounds: { width: number, height: number }
+  windowBounds: { width: number; height: number }
   isMaximized: boolean
   clearAppDataOnStart: boolean
+  applications: { [key:string]: any }
   extUrl: string
   isKiosk: boolean
   flowrMonitoringTime?: number
@@ -36,4 +37,4 @@ export interface IFlowrStore {
   debugMode?: boolean
 }
 
-export type ModifiableConfig = Pick<IFlowrStore, 'debugMode' |  'deinterlacing' |  'extUrl' |  'flowrMonitoringTime' |  'isKiosk' |  'clearAppDataOnStart' |  'enableVirtualKeyboard' |  'flowrConfig' | 'virtualKeyboardConfig'>
+export type ModifiableConfig = Pick<IFlowrStore, 'debugMode' |  'deinterlacing' |  'extUrl' |  'flowrMonitoringTime' |  'isKiosk' |  'clearAppDataOnStart' | 'applications' |  'enableVirtualKeyboard' |  'flowrConfig' | 'virtualKeyboardConfig'>

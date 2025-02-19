@@ -142,11 +142,27 @@ export function Config({ config, lastError, isLaunchedUrlCorrect }: ConfigProps)
         />
 
         <h3>Applications</h3>
+        <h4>Browser</h4>
         <LabeledInput
           label="Clear app data on start"
           type="checkbox"
           register={register}
           path="clearAppDataOnStart"
+        />
+
+        <h4>FlowR-Phone</h4>
+        <LabeledInput
+          label="Clear app data on start"
+          type="checkbox"
+          register={register}
+          path="applications.FlowrPhone.clearAppDataOnStart"
+        />
+        <LabeledInput
+          label="Prefix phone number by '0'"
+          type="checkbox"
+          register={register}
+          defaultChecked={true}
+          path="applications.FlowrPhone.applyExternalPhoneNumberPrefix"
         />
 
         <h3>Virtual keyboard</h3>

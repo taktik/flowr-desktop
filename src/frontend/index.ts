@@ -32,6 +32,7 @@ export const DEFAULT_FRONTEND_STORE: IFlowrStore = {
   windowBounds: { width: 1280, height: 720 },
   isMaximized: false,
   clearAppDataOnStart: false,
+  applications: { 'FlowrPhone': { clearAppDataOnStart: false } },
   flowrMonitoringTime: 1000,
   extUrl: '',
   isKiosk: false,

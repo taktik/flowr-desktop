@@ -12,6 +12,7 @@ export const fr: LocalisedMessage = {
   'Extra credit is necessary for all phone call towards mobiles, international numbers or special numbers': { message: 'Du crédit téléphonique est nécessaire pour toute communication vers les mobiles, vers l\'international ou vers les numéros spéciaux.' },
   Favorites: { message: 'Favoris' },
   'Incoming Call': { message: 'Appel Entrant' },
+  'Pick Up the phone': { message: 'Veuillez décrocher le téléphone sur le côté de l\'écran' },
   'Hang Up': { message: 'Raccrocher' },
   History: { message: 'Historique' },
   Keypad: { message: 'Clavier' },

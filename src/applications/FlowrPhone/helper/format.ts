@@ -1,6 +1,6 @@
 import { CallingNumber } from '../views/phone'
 
-export function formatCallingNumber(callingNumber: CallingNumber | string) {
+export function formatCallingNumber(callingNumber: CallingNumber | string): string {
   if (typeof callingNumber === 'string') {
     return callingNumber
   }

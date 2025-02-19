@@ -8,6 +8,7 @@ interface IFlowrDesktopConfigWindowDimensions {
 interface IFlowrDesktopConfigUserPreferences {
   isMaximized?: boolean | null
   clearAppDataOnStart?: boolean | null
+  applications: { [key:string]: any }
   extUrl?: string | null,
   isKiosk?: boolean | null
   deinterlacing?: boolean | null

@@ -16,6 +16,7 @@ interface FavoritesProps {
   save: (phoneNumber: CallingNumber) => void
   openKeyboard?: () => void
   closeKeyboard?: () => void
+  applyExternalPhoneNumberPrefix?: boolean
 }
 
 enum FavoritesRoute { LIST, ADD }
@@ -36,25 +37,25 @@ export class FavoritesView extends React.Component<FavoritesProps, FavoritesStat
     this.state = { route: FavoritesRoute.LIST, editName: '', editValue: '' }
   }
 
-  save(phoneNumber: CallingNumber) {
+  save(phoneNumber: CallingNumber): void {
     this.props.save(phoneNumber)
     this.listRoute()
   }
 
-  edit(phoneNumber: CallingNumber) {
+  edit(phoneNumber: CallingNumber): void {
     this.setState({ editName: phoneNumber.name, editValue: phoneNumber.value })
     this.addRoute()
   }
 
-  back() {
+  back(): void {
     this.props.select({ value: '' })
   }
 
-  listRoute() {
+  listRoute(): void {
     this.setState({ route: FavoritesRoute.LIST, editName: '', editValue: '' })
   }
 
-  addRoute() {
+  addRoute(): void {
     this.setState({ route: FavoritesRoute.ADD })
   }
 
@@ -95,12 +96,13 @@ export class FavoritesView extends React.Component<FavoritesProps, FavoritesStat
           back={this.listRoute.bind(this)}
           openKeyboard={this.props.openKeyboard}
           closeKeyboard={this.props.closeKeyboard}
+          applyExternalPhoneNumberPrefix={this.props.applyExternalPhoneNumberPrefix}
         ></AddFavorite>
       </div>
     )
   }
 
-  render() {
+  render(): JSX.Element {
     if (this.state.route === FavoritesRoute.ADD) {
       return this.addPage()
     }
