@@ -1,6 +1,6 @@
 import {ipcMain, WebContents} from "electron"
 import { printer, PrinterTypes } from "node-thermal-printer";
-
+import {PosPrinter} from 'electron-pos-printer'
 export class ThermalPrinterProcess {
     private static instance: ThermalPrinterProcess | undefined = undefined;
     private webContents: WebContents;
@@ -31,13 +31,21 @@ export class ThermalPrinterProcess {
         }
     }
 
-    private printHelloWorld(param: {type: PrinterTypes, interface: string}) {
+    private async printHelloWorld(param: {printerName: string}) {
         try {
-            const thermalPrinter = new printer({
-                type: param.type,
-                interface: param.interface,
+            await PosPrinter.print([
+                { type: 'text', value: 'Hello World!' },
+                { type: 'text', value: 'Bienvenue à l\'impression POS' }
+            ], {
+                boolean: undefined,
+                preview: false,
+                margin: '0 0 0 0',
+                copies: 1,
+                printerName: param.printerName,
+                timeOutPerLine: 400,
+                pageSize: '80mm' // page size
             })
-            thermalPrinter.println('Hello World !')
+            this.webContents.send(`print-success`)
         } catch (err) {
             console.log('Printing error', JSON.stringify(err))
             this.webContents.send(`print-error`, {
