@@ -30,8 +30,25 @@ export class ThermalPrinterProcess {
             })
         }
     }
+
+    private printHelloWorld(param: {type: PrinterTypes, interface: string}) {
+        try {
+            const thermalPrinter = new printer({
+                type: param.type,
+                interface: param.interface,
+            })
+            thermalPrinter.println('Hello World !')
+        } catch (err) {
+            console.log('Printing error', JSON.stringify(err))
+            this.webContents.send(`print-error`, {
+                errorMessage: 'cannot print'
+            })
+        }
+
+    }
     private startListeningEvents() {
         ipcMain.on('check-thermal-printer-status', this.checkThermalPrinterStatus.bind(this))
+        ipcMain.on('print-hello-world', this.printHelloWorld.bind(this))
     }
 
     private constructor(webContents: WebContents) {
