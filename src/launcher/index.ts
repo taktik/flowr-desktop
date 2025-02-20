@@ -28,7 +28,7 @@ import initComponents from '../wexond/extensions/components'
 import { WexondOptions } from '../wexond/main/app-window'
 import { getMigrateUserPreferences } from './migration/fromFlowrClientToFlowrPcClient'
 import {init as initBeiReader} from "../beidReader/beid";
-import {init as initPrinterProcess, PrinterProcessHandler} from "../printer/printer-process-handler";
+import {init as initPrinterProcess, ThermalPrinterProcess} from "../printer/thermal-printer-process";
 
 
 initializeLogging()
@@ -255,7 +255,7 @@ async function main() {
       // ADD check if bei_reader should be init
       // initBeiReader(flowrWindow.webContents)
       console.log('is defined: ', !!flowrWindow.webContents)
-      PrinterProcessHandler.init(flowrWindow.webContents)
+      ThermalPrinterProcess.init(flowrWindow.webContents)
     } catch (e) {
       console.error('Error in init', e)
     }
