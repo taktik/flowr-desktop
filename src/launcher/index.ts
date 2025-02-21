@@ -28,7 +28,7 @@ import initComponents from '../wexond/extensions/components'
 import { WexondOptions } from '../wexond/main/app-window'
 import { getMigrateUserPreferences } from './migration/fromFlowrClientToFlowrPcClient'
 import {init as initBeiReader} from "../beidReader/beid";
-import {init as initPrinterProcess, ThermalPrinterProcess} from "../printer/thermal-printer-process";
+import { ThermalPrinterProcess} from "../printer/thermal-printer-process";
 
 
 initializeLogging()
