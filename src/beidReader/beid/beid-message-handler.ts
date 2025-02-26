@@ -20,6 +20,7 @@ export class BeIDDataHandler {
     // private messageBroker = BeIDMessageBroker.getInstance(4000)
 
     handleMessage(message: string) {
+        console.log('message', message)
         if (message.startsWith(BeIDDataHeader.READER_DATA)) {
             const cleanMessage = message.replace(BeIDDataHeader.READER_DATA, '').trim()
             this.handleData(cleanMessage)

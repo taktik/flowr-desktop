@@ -30,7 +30,6 @@ import { getMigrateUserPreferences } from './migration/fromFlowrClientToFlowrPcC
 import {init as initBeiReader} from "../beidReader/beid";
 import { ThermalPrinterProcess} from "../printer/thermal-printer-process";
 
-
 initializeLogging()
 
 const FlowrDataDir = resolve(homedir(), '.flowr')

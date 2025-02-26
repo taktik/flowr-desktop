@@ -70,7 +70,7 @@ export function createFlowrWindow(flowrStore: Store<IFlowrStore>, isDebugMode: (
   const opts = buildBrowserWindowConfig(flowrStore, {
     icon: resolve(app.getAppPath(), 'static/app-icons/icon.png'),
     webPreferences: {
-      nodeIntegration: false,
+      nodeIntegration: true,
       contextIsolation: false,
       sandbox: false,
       partition: FLOWR_PARTITION, // needed to display webcam image

@@ -13,16 +13,8 @@ export class ThermalPrinterProcess {
 
     private async printContent(_: unknown, param: {data: PosPrintData[], options: PosPrintOptions}) {
         try {
-            /*const printerObj = new printer({
-                type: PrinterTypes.EPSON,
-                interface: 'printer:BIXOLON BK3-3 (Copie 1)',
-            })
-            const value = await printerObj.isPrinterConnected()
-            console.log('connected', value)*/
-
-            console.log(JSON.stringify(param.data))
             await PosPrinter.print(param.data, param.options)
-            console.log('print success')
+            this.webContents.send('print-success')
            
         } catch (err) {
             console.log('Printing error', err)
