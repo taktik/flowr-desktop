@@ -1,5 +1,6 @@
 import { ApplicationConfig, FlowrApplication } from '@taktik/flowr-common-js'
 import { ipcMain, BrowserWindow, IpcMainEvent } from 'electron'
+import { platform } from 'os'
 import { storeManager } from '../launcher'
 import { Store } from '../frontend/src/store'
 import { readdir, readFile } from 'fs/promises'
@@ -9,7 +10,7 @@ import { getLogger } from '../frontend/src/logging/loggers'
 import { IFlowrStore } from '../frontend/src/interfaces/flowrStore'
 import { ApplicationInitConfig, ApplicationInitError, ApplicationInitializer, ApplicationOpenConfig, FlowrApplicationInitializer, FlowrApplicationWindow, WindowTypes } from './types'
 import { openDevTools } from '../common/devTools'
-
+import checkDiskSpace from 'check-disk-space'
 export class ApplicationManager {
   private logger = getLogger('Applications manager')
   private applications: {[key: string]: FlowrApplicationInitializer} = {}
@@ -41,14 +42,28 @@ export class ApplicationManager {
     this.openApplication = this.openApplication.bind(this)
     this.canOpenApplication = this.canOpenApplication.bind(this)
     this.executeOnWindows = this.executeOnWindows.bind(this)
+    this.getMemoryAvailableCapacity = this.getMemoryAvailableCapacity.bind(this)
     /* eslint-enable @typescript-eslint/no-unsafe-assignment */
     /* eslint-disable @typescript-eslint/unbound-method */
     ipcMain.handle('initializeApplications', this.processApplicationsConfigs)
     ipcMain.handle('open-application', this.openApplication)
     ipcMain.handle('can-open-application', this.canOpenApplication)
+    ipcMain.handle('memory-available-capacity', this.getMemoryAvailableCapacity)
+
     /* eslint-enable @typescript-eslint/unbound-method */
   }
-  
+
+  private async getMemoryAvailableCapacity(): Promise<number> {
+    try {
+      const { free } = await checkDiskSpace(platform() === 'win32' ? 'C:\\' : '/')
+      return free
+    } catch (err) {
+      this.logger.error('Error getting memory available capacity', err)
+      return 0
+    }
+
+  }
+
   private async registerApp(name: string): Promise<void> {
     try {
 
