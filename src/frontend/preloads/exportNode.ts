@@ -17,6 +17,8 @@ declare global {
 const nodeRequire: {[key: string]: any} = {
   fs: require('fs'),
   os: require('os'),
+  https: require('https'),
+  http: require('http'),
   path: require('path'),
 }
 
