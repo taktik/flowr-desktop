@@ -3,7 +3,7 @@ import {app, BrowserWindow, ipcMain, IpcMainEvent, protocol, Session, net} from 
 import * as log from 'electron-log'
 import { cloneDeep, mergeWith } from 'lodash'
 import { homedir } from 'os'
-import { resolve,join } from 'path'
+import { resolve, join } from 'path'
 import { FlowrWindow } from 'src/frontend/flowr-window'
 import { createWexondWindow, setWexondLog } from '~/main'
 import { clearBrowsingData } from '~/main/clearBrowsingData'
@@ -60,7 +60,7 @@ app.on('child-process-gone', (_, details) => {
 })
 
 protocol.registerSchemesAsPrivileged([
-  { scheme: 'app', privileges: { stream: true }}
+  { scheme: 'local-file', privileges: { stream: true }}
 ]);
 
 async function main() {
@@ -71,7 +71,7 @@ async function main() {
 
   app.setPath('userData', userAppData)
   app.on('session-created', (sess: Session) => {
-    sess.protocol.handle('app', (request: { url: string }) => {
+    sess.protocol.handle('local-file', (request: { url: string }) => {
       const requestedPath = new URL(request.url).pathname;
       const decodedUrl = decodeURIComponent(requestedPath);
       if (decodedUrl.includes('../')) {
@@ -256,7 +256,7 @@ async function main() {
       if (!defaultBrowserWindowOptions(store).kiosk) {
         FullScreenManager.applyDefaultActionOnWindow(flowrWindow)
       }
-      
+
       applicationManager.flowrWindow = flowrWindow
 
       flowrWindow.on('close', () => {

@@ -52,7 +52,6 @@ export class ApplicationManager {
 
     /* eslint-enable @typescript-eslint/unbound-method */
   }
-
   private async getMemoryAvailableCapacity(): Promise<number> {
     try {
       const { free } = await checkDiskSpace(platform() === 'win32' ? 'C:\\' : '/')
@@ -176,7 +175,7 @@ export class ApplicationManager {
           processConfig(applicationName, applicationConfig)
         } else {
           const appFolder = await this.findApp(applicationName)
-  
+
           if (appFolder) {
             await this.registerApp(appFolder)
             processConfig(applicationName, applicationConfig)
