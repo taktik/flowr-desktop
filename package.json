@@ -113,6 +113,7 @@
     "gsap": "2.1.2",
     "icojs": "0.17.0",
     "jimp": "^1.6.0",
+    "check-disk-space": "3.4.0",
     "lodash": "4.17.11",
     "mobx": "5.9.4",
     "mobx-react": "5.4.3",

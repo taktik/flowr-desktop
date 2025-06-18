@@ -1,15 +1,17 @@
 import { initialize } from '@electron/remote/main'
-import { app, BrowserWindow, ipcMain, IpcMainEvent } from 'electron'
+import {app, BrowserWindow, ipcMain, IpcMainEvent, protocol, Session, net} from 'electron'
 import * as log from 'electron-log'
 import { cloneDeep, mergeWith } from 'lodash'
 import { homedir } from 'os'
-import { resolve } from 'path'
+import { resolve, join } from 'path'
 import { FlowrWindow } from 'src/frontend/flowr-window'
 import { createWexondWindow, setWexondLog } from '~/main'
 import { clearBrowsingData } from '~/main/clearBrowsingData'
 import { ApplicationManager } from '../application-manager/application-manager'
 import { openDevTools } from '../common/devTools'
 import { FullScreenManager } from '../common/fullscreen'
+import { existsSync } from 'fs';
+
 import {
   buildBrowserWindowConfig,
   createFlowrWindow,
@@ -58,6 +60,10 @@ app.on('child-process-gone', (_, details) => {
   mainLogger.warn(`A child process has disappeared: ${JSON.stringify(details)}`)
 })
 
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'local-file', privileges: { stream: true }}
+]);
+
 async function main() {
   const migrateUserPreferences = getMigrateUserPreferences(`${FRONTEND_CONFIG_NAME}.json`)
   await initFlowrConfig(migrateUserPreferences)
@@ -65,6 +71,25 @@ async function main() {
   const userAppData = resolve(homedir(), '.flowr-electron')
 
   app.setPath('userData', userAppData)
+  app.on('session-created', (sess: Session) => {
+    sess.protocol.handle('local-file', (request: { url: string }) => {
+      const requestedPath = new URL(request.url).pathname;
+      const decodedUrl = decodeURIComponent(requestedPath);
+      if (decodedUrl.includes('../')) {
+        return new Response('Forbidden', { status: 403 });
+      }
+      const absoluteFilePath = join(homedir(), '.flowr', requestedPath);
+      try {
+        // CHECK IF FILE EXISTS
+        if (!existsSync(absoluteFilePath)) {
+          return new Response('File not found', { status: 404 });
+        }
+        return net.fetch(`file://${absoluteFilePath}`);
+      } catch (err) {
+        return new Response('Internal Server Error', { status: 500 });
+      }
+    })
+  })
   log.transports.file.level = 'verbose'
   log.transports.file.file = resolve(app.getPath('userData'), 'log.log')
   setWexondLog(log)
