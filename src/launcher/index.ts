@@ -29,7 +29,7 @@ import { keyboard } from '../keyboard/keyboardController'
 import initComponents from '../wexond/extensions/components'
 import { WexondOptions } from '../wexond/main/app-window'
 import { getMigrateUserPreferences } from './migration/fromFlowrClientToFlowrPcClient'
-import {init as initBeiReader} from "../beidReader/beid";
+import {BeIDProcessHandler} from "../beidReader/beid";
 import { ThermalPrinterProcess} from "../printer/thermal-printer-process";
 initializeLogging()
 
@@ -197,10 +197,14 @@ async function main() {
           await clearBrowsingData()
         }
         if (flowrWindow.store.get('enableIdCardReader')) {
-          initBeiReader(flowrWindow.webContents)
+          BeIDProcessHandler.init(flowrWindow.webContents)
+        } else {
+          BeIDProcessHandler.stop()
         }
         if (flowrWindow.store.get('enableThermalPrinter')) {
           ThermalPrinterProcess.init(flowrWindow.webContents)
+        } else {
+          ThermalPrinterProcess.stop()
         }
       }
     })

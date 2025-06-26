@@ -5,21 +5,23 @@ import {app, WebContents} from "electron";
 import {platform} from "os";
 import * as log from "electron-log";
 
-class BeIDProcessHandler {
+export class BeIDProcessHandler {
+    private readonly executablePath =  computeExecutablePath()
     private static instance: BeIDProcessHandler | undefined = undefined
-
-    static getInstance(fileName: string, webContents: WebContents): BeIDProcessHandler {
-        if (!this.instance) {
-            this.instance = new BeIDProcessHandler(fileName)
-            this.instance.start(webContents)
-        }
-        return this.instance
-    }
-
-    private readonly executablePath: string
+    private messageHandler: BeIDDataHandler = BeIDDataHandler.getInstance()
     private childProcessReference: ChildProcessWithoutNullStreams | undefined
 
-    private messageHandler: BeIDDataHandler = BeIDDataHandler.getInstance()
+    static init( webContents: WebContents) {
+        if (!this.instance) {
+            this.instance = new BeIDProcessHandler()
+        }
+        this.instance.start(webContents)
+    }
+
+    static stop() {
+        this.instance?.stop()
+        this.instance = undefined
+    }
 
     private childProcessStandardOutputHandler: (data: any) => void = (data: any) => {
         this.messageHandler.handleMessage(data.toString())
@@ -45,16 +47,15 @@ class BeIDProcessHandler {
         } catch (err) {
             log.error(err)
         }
-
     }
 
-    private constructor(path: string) {
-        this.executablePath = path
-        console.log(this.executablePath)
+    private stop() {
+        if (this.childProcessReference) {
+            this.childProcessReference.kill('SIGTERM')
+        }
     }
 }
 
-let handler: BeIDProcessHandler
 
 const computeExecutablePath = () => {
     const fileName = platform() === 'win32' ? 'beid_reader.exe': 'beid_reader'
@@ -65,11 +66,14 @@ const computeExecutablePath = () => {
 }
 
 const init = (webContents: WebContents ) => {
-    handler = BeIDProcessHandler.getInstance(computeExecutablePath(), webContents)
+    BeIDProcessHandler.getInstance(computeExecutablePath(), webContents)
+    BeIDProcessHandler.startProcess(webContents)
 }
 
-const getHandler = () => {
-    return handler
+const stop = () => {
+    BeIDProcessHandler.stopProcess()
 }
 
-export { getHandler, init }
+
+
+export { init, stop }
