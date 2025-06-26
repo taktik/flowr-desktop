@@ -33,8 +33,8 @@ function handleError(
 
 const log = getLogger('FlowrFfmpeg')
 
-// Ffmpeg.setFfmpegPath(resolve(app.getAppPath(), ffmpegPath))
-//
+Ffmpeg.setFfmpegPath(resolve(app.getAppPath(), ffmpegPath))
+
 /**
  * The container formats we use as ffmpeg's outputs
  */

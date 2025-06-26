@@ -17,10 +17,7 @@ export class BeIDDataHandler {
         return this.instance
     }
 
-    // private messageBroker = BeIDMessageBroker.getInstance(4000)
-
     handleMessage(message: string) {
-        console.log('message', message)
         if (message.startsWith(BeIDDataHeader.READER_DATA)) {
             const cleanMessage = message.replace(BeIDDataHeader.READER_DATA, '').trim()
             this.handleData(cleanMessage)
@@ -31,10 +28,6 @@ export class BeIDDataHandler {
             const cleanMessage = message.replace(BeIDDataHeader.READER_ERROR, '').trim()
             this.handleError(cleanMessage)
         }
-        // TODO
-        // else {
-        //     this.messageBroker.publish(undefined)
-        // }
     }
 
     private handleData(message: string): void {
@@ -45,8 +38,6 @@ export class BeIDDataHandler {
             nationalNumber: messageContent?.[3]
         }
         this.webContents?.send('beid-message', beidData)
-        // TODO
-        // this.messageBroker.publish(beidData)
     }
 
     private handleInfo(message: string): void {

@@ -70,7 +70,7 @@ export function createFlowrWindow(flowrStore: Store<IFlowrStore>, isDebugMode: (
   const opts = buildBrowserWindowConfig(flowrStore, {
     icon: resolve(app.getAppPath(), 'static/app-icons/icon.png'),
     webPreferences: {
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: false,
       sandbox: false,
       partition: FLOWR_PARTITION, // needed to display webcam image
@@ -126,7 +126,7 @@ export function createFlowrWindow(flowrStore: Store<IFlowrStore>, isDebugMode: (
     try {
       // Ensure validity of stored URL
       const url = new URL(storedUrl)
-    
+
       try {
         const mac = await getActiveMacAddress()
         // set mac address in the URL to ensure backward compatibility with Flowr 5.1
@@ -134,12 +134,12 @@ export function createFlowrWindow(flowrStore: Store<IFlowrStore>, isDebugMode: (
       } catch (error) {
         log.warn('Failed to retrieve/set active mac address', error)
       }
-  
+
       try {
         await mainWindow.loadURL(url.href)
       } catch (untypedError) {
         const e = untypedError as NodeJS.ErrnoException
-  
+
         if (e.code === 'ERR_ABORTED') {
           // ignore => it means the page changed its hash in the meantime
           return

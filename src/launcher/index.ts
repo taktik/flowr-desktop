@@ -31,7 +31,6 @@ import { WexondOptions } from '../wexond/main/app-window'
 import { getMigrateUserPreferences } from './migration/fromFlowrClientToFlowrPcClient'
 import {init as initBeiReader} from "../beidReader/beid";
 import { ThermalPrinterProcess} from "../printer/thermal-printer-process";
-const hello = require('../../build/Release/hello')
 initializeLogging()
 
 const FlowrDataDir = resolve(homedir(), '.flowr')
@@ -277,13 +276,8 @@ async function main() {
 
       ipcMain.on('flowrLanguageChanged', (e: Event, lang: string) => applicationManager.languageChanged(lang))
       // ADD check if bei_reader should be init
-      // initBeiReader(flowrWindow.webContents)
+      initBeiReader(flowrWindow.webContents)
       ThermalPrinterProcess.init(flowrWindow.webContents)
-
-      console.log('hello', hello)
-      console.log(typeof hello)
-
-      //console.log(scanner.scan())
     } catch (e) {
       console.error('Error in init', e)
     }

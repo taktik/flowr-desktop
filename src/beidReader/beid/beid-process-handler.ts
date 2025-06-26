@@ -5,28 +5,18 @@ import {app, WebContents} from "electron";
 import {platform} from "os";
 import * as log from "electron-log";
 
-// Event to handle
-// on(event: 'close', listener: (code: number | null, signal: NodeJS.Signals | null) => void): this;
-// on(event: 'disconnect', listener: () => void): this;
-// on(event: 'error', listener: (err: Error) => void): this;
-// on(event: 'exit', listener: (code: number | null, signal: NodeJS.Signals | null) => void): this;
-// on(event: 'message', listener: (message: Serializable, sendHandle: SendHandle) => void): this;
-// on(event: 'spawn', listener: () => void): this;
-
-//  TODO: Add missing handlers
 class BeIDProcessHandler {
     private static instance: BeIDProcessHandler | undefined = undefined
 
     static getInstance(fileName: string, webContents: WebContents): BeIDProcessHandler {
         if (!this.instance) {
-            this.instance = new BeIDProcessHandler(fileName, webContents)
+            this.instance = new BeIDProcessHandler(fileName)
             this.instance.start(webContents)
         }
         return this.instance
     }
 
-    private executablePath: string
-    private webContents: WebContents
+    private readonly executablePath: string
     private childProcessReference: ChildProcessWithoutNullStreams | undefined
 
     private messageHandler: BeIDDataHandler = BeIDDataHandler.getInstance()
@@ -42,7 +32,6 @@ class BeIDProcessHandler {
     private childProcessExitHandler: (exitCode?: any) => void = (exitCode: any) => {
         console.log(`BeIDProcess exit with code ${exitCode}`)
         this.messageHandler.handleMessage('')
-        //this.start()  //  TODO: Implement a better retry logic
     }
 
     private start(webContents: WebContents) {
@@ -59,9 +48,8 @@ class BeIDProcessHandler {
 
     }
 
-    private constructor(path: string, webContents: WebContents) {
+    private constructor(path: string) {
         this.executablePath = path
-        this.webContents = webContents
         console.log(this.executablePath)
     }
 }
