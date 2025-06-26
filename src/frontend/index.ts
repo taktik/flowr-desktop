@@ -39,7 +39,6 @@ export const DEFAULT_FRONTEND_STORE: IFlowrStore = {
   deinterlacing: false,
   enableVirtualKeyboard: false,
   enableIdCardReader: false,
-  enableThermalPrinter: false,
   logLevel: LogSeverity.INFO,
   virtualKeyboardConfig: {
       mode: VirtualKeyboardMode.INTERNAL,
