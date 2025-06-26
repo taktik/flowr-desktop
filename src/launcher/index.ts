@@ -29,7 +29,7 @@ import { keyboard } from '../keyboard/keyboardController'
 import initComponents from '../wexond/extensions/components'
 import { WexondOptions } from '../wexond/main/app-window'
 import { getMigrateUserPreferences } from './migration/fromFlowrClientToFlowrPcClient'
-import {BeIDProcessHandler} from "../beidReader/beid";
+import { BeIDProcessHandler } from "../beidReader/beid";
 import { ThermalPrinterProcess} from "../printer/thermal-printer-process";
 initializeLogging()
 

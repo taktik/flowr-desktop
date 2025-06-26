@@ -14,8 +14,8 @@ export class BeIDProcessHandler {
     static init( webContents: WebContents) {
         if (!this.instance) {
             this.instance = new BeIDProcessHandler()
+            this.instance.start(webContents)
         }
-        this.instance.start(webContents)
     }
 
     static stop() {
