@@ -196,6 +196,12 @@ async function main() {
         if (flowrWindow.store.get('clearAppDataOnStart')) {
           await clearBrowsingData()
         }
+        if (flowrWindow.store.get('enableIdCardReader')) {
+          initBeiReader(flowrWindow.webContents)
+        }
+        if (flowrWindow.store.get('enableThermalPrinter')) {
+          ThermalPrinterProcess.init(flowrWindow.webContents)
+        }
       }
     })
 
@@ -275,9 +281,6 @@ async function main() {
       })
 
       ipcMain.on('flowrLanguageChanged', (e: Event, lang: string) => applicationManager.languageChanged(lang))
-      // ADD check if bei_reader should be init
-      initBeiReader(flowrWindow.webContents)
-      ThermalPrinterProcess.init(flowrWindow.webContents)
     } catch (e) {
       console.error('Error in init', e)
     }
