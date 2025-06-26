@@ -17,7 +17,6 @@ interface IFlowrDesktopConfigUserPreferences {
   flowrMonitoringTime?: number
   enableVirtualKeyboard: boolean
   enableIdCardReader?: boolean
-  enableThermalPrinter?: boolean
 }
 
 export interface IFlowrDesktopConfig {

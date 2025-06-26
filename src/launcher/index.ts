@@ -201,11 +201,7 @@ async function main() {
         } else {
           BeIDProcessHandler.stop()
         }
-        if (flowrWindow.store.get('enableThermalPrinter')) {
-          ThermalPrinterProcess.init(flowrWindow.webContents)
-        } else {
-          ThermalPrinterProcess.stop()
-        }
+        ThermalPrinterProcess.init(flowrWindow.webContents)
       }
     })
 
