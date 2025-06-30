@@ -18,13 +18,14 @@ export class ThermalPrinterProcess {
 
     private async printContent(_: unknown, param: {data: PosPrintData[], options: PosPrintOptions}) {
         try {
-            await PosPrinter.print(param.data, param.options)
-            this.webContents.send('print-success')
+            const result = await PosPrinter.print(param.data, param.options)
+            this.webContents.send('print-success', {
+                result
+            })
 
         } catch (err) {
-            console.log('Printing error', err)
             this.webContents.send(`print-error`, {
-                errorMessage: 'error'
+                errorMessage: err.message ? err.message : err
             })
         }
 
