@@ -18,14 +18,12 @@ export class ThermalPrinterProcess {
 
     private async getPrinterData(printerName: string) {
         const printers = await this.webContents.getPrintersAsync()
-        return printers.find((p) => p.name === printerName)
+        return printers.find((p) => p.name === printerName || p.displayName === printerName)
     }
 
     private async getPrinter(_: unknown, printerName: string) {
         try {
-            console.log('printerName', printerName)
             const printer = await this.getPrinterData(printerName)
-            console.log('printer', printer)
             this.webContents.send('printer-data', printer)
         } catch (err) {
             this.webContents.send('get-printer-error', {
@@ -42,9 +40,8 @@ export class ThermalPrinterProcess {
                     errorMessage: 'Printer not connected/ready'
                 })
             }
-             await PosPrinter.print(param.data, param.options)
+            await PosPrinter.print(param.data, param.options)
             this.webContents.send('print-success')
-
         } catch (err) {
             this.webContents.send(`print-error`, {
                 errorMessage: err.message ? err.message : err
