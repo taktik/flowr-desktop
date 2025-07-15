@@ -30,7 +30,6 @@ import initComponents from '../wexond/extensions/components'
 import { WexondOptions } from '../wexond/main/app-window'
 import { getMigrateUserPreferences } from './migration/fromFlowrClientToFlowrPcClient'
 import { BeIDProcessHandler } from "../beidReader/beid";
-import { ThermalPrinterProcess} from "../printer/thermal-printer-process";
 initializeLogging()
 
 const FlowrDataDir = resolve(homedir(), '.flowr')
@@ -201,7 +200,6 @@ async function main() {
         } else {
           BeIDProcessHandler.stop()
         }
-        ThermalPrinterProcess.init(flowrWindow.webContents)
       }
     })
 
