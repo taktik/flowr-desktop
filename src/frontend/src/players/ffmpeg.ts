@@ -44,9 +44,9 @@ enum OutputFormat {
 }
 
 /**
- * 
- * @param {OutputFormat} format 
- * @returns 
+ *
+ * @param {OutputFormat} format
+ * @returns
  */
 function getOutputParserForFormat(format: OutputFormat): FfmpegParserConstructor {
   switch (format) {

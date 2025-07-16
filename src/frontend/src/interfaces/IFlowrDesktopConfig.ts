@@ -16,6 +16,7 @@ interface IFlowrDesktopConfigUserPreferences {
   windowBounds?: IFlowrDesktopConfigWindowDimensions
   flowrMonitoringTime?: number
   enableVirtualKeyboard: boolean
+  enableIdCardReader?: boolean
 }
 
 export interface IFlowrDesktopConfig {

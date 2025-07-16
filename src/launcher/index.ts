@@ -29,8 +29,7 @@ import { keyboard } from '../keyboard/keyboardController'
 import initComponents from '../wexond/extensions/components'
 import { WexondOptions } from '../wexond/main/app-window'
 import { getMigrateUserPreferences } from './migration/fromFlowrClientToFlowrPcClient'
-
-
+import { BeIDProcessHandler } from "../beidReader/beid";
 initializeLogging()
 
 const FlowrDataDir = resolve(homedir(), '.flowr')
@@ -195,6 +194,11 @@ async function main() {
         flowrWindow.initStore(userPreferencesMerged, desktopConfig.player)
         if (flowrWindow.store.get('clearAppDataOnStart')) {
           await clearBrowsingData()
+        }
+        if (flowrWindow.store.get('enableIdCardReader')) {
+          BeIDProcessHandler.init(flowrWindow.webContents)
+        } else {
+          BeIDProcessHandler.stop()
         }
       }
     })

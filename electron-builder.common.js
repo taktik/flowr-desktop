@@ -15,7 +15,7 @@ module.exports = {
     output: 'dist',
     buildResources: 'static/app-icons'
   },
-  files: ['build/**/*', 'package.json'],
+  files: ['build/**/*', 'package.json', 'script/beid/**/*'],
   linux: {
     category: 'Network',
     target: [

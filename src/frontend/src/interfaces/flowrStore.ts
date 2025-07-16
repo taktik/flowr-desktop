@@ -28,6 +28,7 @@ export interface IFlowrStore {
   deinterlacing: boolean
   flowrConfig?: FlowrConfig
   enableVirtualKeyboard: boolean
+  enableIdCardReader: boolean
   virtualKeyboardConfig: VirtualKeyboardConfig
   useRealMacAddress?: boolean
   phoneServer?: string
