@@ -1,4 +1,5 @@
 import { app } from 'electron';
+import * as os from 'os';
 
 const REMOVE_CHROME_COMPONENT_PATTERNS = [
   /^https:\/\/accounts\.google\.com(\/|$)/,
@@ -10,6 +11,15 @@ const COMPONENTS_TO_REMOVE = [
   / Electron\\?.([^\s]+)/g,
   ` ${app.name}/${app.getVersion()}`,
 ];
+
+// Chromium freezes the macOS version in the User-Agent at 10_15_7.
+// Some streaming services (e.g. Prime Video) reject this as too old.
+// Replace the frozen version with the real OS version.
+const realMacOSVersion = os.release().replace(/\./g, '_');
+const fixMacOSVersion = (userAgent: string): string => {
+  if (process.platform !== 'darwin') return userAgent;
+  return userAgent.replace(/Mac OS X 10_15_7/, `Mac OS X ${realMacOSVersion}`);
+};
 
 const urlMatchesPatterns = (url: string, patterns: RegExp[]) =>
   patterns.some((pattern) => url.match(pattern));
@@ -33,5 +43,6 @@ export const getUserAgentForURL = (userAgent: string, url: string): string => {
   }
 
   // Replace the components.
-  return componentsToRemove.reduce<string>((agent, component) => agent.replace(component, ''), userAgent)
+  const cleaned = componentsToRemove.reduce<string>((agent, component) => agent.replace(component, ''), userAgent)
+  return fixMacOSVersion(cleaned)
 };
