@@ -33,7 +33,21 @@ function handleError(
 
 const log = getLogger('FlowrFfmpeg')
 
-Ffmpeg.setFfmpegPath(resolve(app.getAppPath(), ffmpegPath))
+const ffmpegAvailable = !!ffmpegPath
+if (ffmpegAvailable) {
+  Ffmpeg.setFfmpegPath(resolve(app.getAppPath(), ffmpegPath))
+} else {
+  log.warn('ffmpeg binary not found. Ffmpeg-based playback will not be available.')
+}
+
+function assertFfmpegAvailable(): void {
+  if (!ffmpegAvailable) {
+    throw new PlayerError(
+      'ffmpeg is not available on this platform. Please install ffmpeg-static with support for your architecture.',
+      PlayerErrors.UNKNOWN,
+    )
+  }
+}
 
 /**
  * The container formats we use as ffmpeg's outputs
@@ -92,6 +106,7 @@ function getAudioMpegtsPipeline(
   input: string | Readable,
   errorHandler: (error: PlayerError) => void,
 ): FfmpegCommandBuilder {
+  assertFfmpegAvailable()
   const command = Ffmpeg(input, { logger: log })
     .on('start', (commandLine: string) => {
       log.info('Spawned Ffmpeg with command:', commandLine)
@@ -108,6 +123,7 @@ function getVideoPipeline({
   deinterlace = false,
   errorHandler,
 }: FfmpegPipelinesParams): FfmpegCommandBuilder {
+  assertFfmpegAvailable()
   const audioStreamSelector = audioPid ? `i:${audioPid}` : '0:a:0'
   const command = Ffmpeg(input, { logger: log })
     .inputOptions('-probesize 1000k')
