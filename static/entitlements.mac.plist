@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS entitlements for Electron + Widevine builds.
+  These are required for the app to run on macOS (especially Apple Silicon).
+  Without them, the app crashes on boot.
+
+  - allow-jit: Required by V8/Chromium for JIT compilation. Without it, JavaScript execution fails.
+  - allow-unsigned-executable-memory: Required by Chromium's memory allocator. Without it, the renderer process crashes.
+  - disable-library-validation: Required to load the Widevine CDM .dylib (which is not signed by Apple). Without it, macOS blocks the library and DRM playback fails.
+
+  These entitlements are referenced by electron-builder.widevine.js and applied during code signing.
+-->
+<plist version="1.0">
+  <dict>
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+  </dict>
+</plist>
