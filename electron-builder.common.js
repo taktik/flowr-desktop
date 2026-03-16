@@ -41,6 +41,16 @@ module.exports = {
     ]
   },
   mac: {
-    category: 'public.app-category.navigation'
+    category: 'public.app-category.navigation',
+    target: [
+      {
+        target: 'dmg',
+        arch: ['universal']
+      },
+      {
+        target: 'zip',
+        arch: ['universal']
+      }
+    ]
   }
 }
