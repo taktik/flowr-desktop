@@ -32,11 +32,11 @@ module.exports = {
     target: [
       {
         target: 'zip',
-        arch: ['x64', 'ia32']
+        arch: ['x64']
       },
       {
         target: 'nsis',
-        arch: ['x64', 'ia32']
+        arch: ['x64']
       }
     ]
   },

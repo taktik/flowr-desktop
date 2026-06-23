@@ -126,34 +126,28 @@ $ npm run compile-win32 -- --publish always # note the additional "--" to pass t
 ```
 
 ### Build for Mac
-Attention: use ffmpeg-static 5.2.0
 ```
 nvm use && rm -rf node_modules && npm run setup && npm run build && npm run cm
 ```
 ### Build for Mac with Widevine support
-Attention: use ffmpeg-static 5.2.0
 ```
-nvm use && rm -rf node_modules && npm run setup-widevine && npm run build && npm run cwm
+nvm use && rm -rf node_modules && npm run setup-widevine && npm run build && PYTHON3=/path/to/castlabs/python3 npm run cwm
 ```
 
 ### Build for Linux
-Attention: use ffmpeg-static 3.0.0
 ```
 nvm use && rm -rf node_modules && npm run setup && npm run build && npm run cl
 ```
 ### Build for Linux with Widevine support
-Attention: use ffmpeg-static 3.0.0
 ```
 nvm use && rm -rf node_modules && npm run setup-widevine && npm run build && npm run cwl
 ```
 
 ### Build for Windows (On Windows)
-Attention: use ffmpeg-static 3.0.0
 ```
 nvm use 20.14.0 ; rd .\node_modules -Recurse -Force ; npm run setup ; npm run build ; npm run cw
 ```
 ### Build for Windows with Widevine support (On Windows)
-Attention: use ffmpeg-static 3.0.0
 ```
 nvm use 20.14.0 ; rd .\node_modules -Recurse -Force ; npm run setup-widevine ; npm run build ; npm run cww
 ```
@@ -164,26 +158,92 @@ Two script are available to help build and publish
 $ ./script/build help # build for a given platform
 $ ./script/maven help # publish to taktik's maven repository
 ```
+## <a id="macos-signing"></a> macOS code signing
+
+macOS builds (especially Widevine) require proper code signing to run without issues on end-user machines.
+
+### Why signing is needed
+- **Apple Silicon (arm64)** enforces stricter code signing. Unsigned apps may crash on boot.
+- **Widevine CDM** requires the `com.apple.security.cs.disable-library-validation` entitlement to load its library.
+- **Hardened Runtime** is required for notarization and proper operation on modern macOS.
+
+The entitlements are defined in `static/entitlements.mac.plist` and are automatically applied by electron-builder when a valid signing certificate is found.
+
+### Setting up a signing certificate
+
+1. **Apple Developer Program**: Ensure Taktik has an [Apple Developer Program](https://developer.apple.com/programs/enroll/) membership ($99/year).
+
+2. **Create a Certificate Signing Request (CSR)**:
+   - Open **Keychain Access** on your Mac
+   - Menu: **Keychain Access > Certificate Assistant > Request a Certificate From a Certificate Authority**
+   - Fill in your email and name, select **Saved to disk**
+
+3. **Create the certificate** at [developer.apple.com/account/resources/certificates](https://developer.apple.com/account/resources/certificates):
+   - Click **+** > select **Developer ID Application**
+   - Upload your CSR file > download the `.cer` file
+
+4. **Install the certificate**: double-click the `.cer` file to add it to your Keychain.
+
+5. **Verify** the certificate is available:
+   ```
+   $ security find-identity -v -p codesigning
+   ```
+   You should see: `"Developer ID Application: Taktik (TEAM_ID)"`
+
+Once the certificate is installed, electron-builder will automatically detect it from the Keychain and sign the app with hardened runtime + entitlements. No extra configuration needed.
+
+### Signing on CI
+
+For CI environments without Keychain access, set these environment variables:
+- `CSC_LINK`: base64-encoded `.p12` certificate file
+- `CSC_KEY_PASSWORD`: password for the `.p12` file
+
+To export the `.p12` from your Keychain:
+1. Open **Keychain Access** > find your "Developer ID Application" certificate
+2. Right-click > **Export** > save as `.p12` with a password
+3. Base64-encode it: `base64 -i certificate.p12 | tr -d '\n'`
+
+### Local testing without a certificate
+
+For local development/testing without an Apple Developer certificate, you can ad-hoc sign after building:
+```
+$ codesign --force --deep --sign - --entitlements static/entitlements.mac.plist dist/mac-arm64/flowr-desktop.app
+```
+This is sufficient for running locally but not for distribution.
+
 ## <a id="widevine"></a> Special notes on widevine builds
-OSX and Windows builds require VMP signing for Widevine CDM support. Please read the below section(s) first, but if you need it more info can be found [here](https://github.com/castlabs/electron-releases/wiki/EVS).
+macOS and Windows builds require VMP signing for Widevine CDM support. Please read the below section(s) first, but if you need it more info can be found [here](https://github.com/castlabs/electron-releases/wiki/EVS).
 
 ### Installation
 Python 3.7+ **MUST** be installed.
-A requirement for the build scripts to work on all platforms is to define the PYTHON3 environment variable to target the python3 executable (example: "/usr/local/bin/python3").
-Then
+The build scripts use the `PYTHON3` environment variable to locate the python3 executable.
+
+If using pipx (recommended on macOS with Homebrew-managed Python):
 ```
-$ PYTHON3 -m pip install --upgrade castlabs-evs
+$ pipx install castlabs-evs
+```
+Then set `PYTHON3` to the pipx venv's python, e.g.:
+```
+$ export PYTHON3=~/.local/pipx/venvs/castlabs-evs/bin/python3
+```
+
+Alternatively, install into a venv:
+```
+$ python3 -m venv ~/.castlabs-venv
+$ source ~/.castlabs-venv/bin/activate
+$ pip install castlabs-evs
+$ export PYTHON3=~/.castlabs-venv/bin/python3
 ```
 
 An account has already been created, log in (its credentials can be found the usual Taktik way).
 This operation is to be renewed periodically (at least once every month).
 ```
-$ PYTHON3 -m castlabs_evs.account reauth
+$ $PYTHON3 -m castlabs_evs.account reauth
 ```
 
 However if you ever need to create a new account then use
 ```
-$ PYTHON3 -m castlabs_evs.account signup
+$ $PYTHON3 -m castlabs_evs.account signup
 ```
 
 Once this is done, the build may be performed accordingly to described in the sections above

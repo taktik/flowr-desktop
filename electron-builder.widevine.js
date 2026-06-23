@@ -33,6 +33,22 @@ module.exports = async function() {
     electronDownload: {
       version: `${ELECTRON_VERSION}+wvcus`,
       mirror: 'https://github.com/castlabs/electron-releases/releases/download/v'
+    },
+    /*
+     * macOS requires hardened runtime and specific entitlements for Widevine builds.
+     * Without these, the app crashes on boot on Apple Silicon (arm64) because:
+     * - The Widevine CDM .dylib cannot be loaded without 'disable-library-validation'
+     * - V8/Chromium JIT compilation fails without 'allow-jit'
+     * - Chromium memory management fails without 'allow-unsigned-executable-memory'
+     * See static/entitlements.mac.plist for the full list.
+     * electron-builder applies these automatically when a valid signing certificate is found.
+     * For local testing without a certificate, ad-hoc sign manually (see README).
+     */
+    mac: {
+      ...common.mac,
+      hardenedRuntime: true,
+      entitlements: 'static/entitlements.mac.plist',
+      entitlementsInherit: 'static/entitlements.mac.plist'
     }
   }
 }

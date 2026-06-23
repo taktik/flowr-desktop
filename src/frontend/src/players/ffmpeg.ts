@@ -33,7 +33,13 @@ function handleError(
 
 const log = getLogger('FlowrFfmpeg')
 
-Ffmpeg.setFfmpegPath(resolve(app.getAppPath(), ffmpegPath))
+// ffmpeg-static returns null when no binary exists for the current platform/arch.
+// Without this guard, resolve() crashes with "paths[1] must be of type string" on unsupported platforms.
+if (ffmpegPath) {
+  Ffmpeg.setFfmpegPath(resolve(app.getAppPath(), ffmpegPath))
+} else {
+  log.warn('ffmpeg-static binary not found for this platform/arch. ffmpeg features will not be available.')
+}
 
 /**
  * The container formats we use as ffmpeg's outputs
