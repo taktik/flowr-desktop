@@ -64,11 +64,22 @@ protocol.registerSchemesAsPrivileged([
 
 async function main() {
   const migrateUserPreferences = getMigrateUserPreferences(`${FRONTEND_CONFIG_NAME}.json`)
-  await initFlowrConfig(migrateUserPreferences)
 
   const userAppData = resolve(homedir(), '.flowr-electron')
 
   app.setPath('userData', userAppData)
+
+  /*
+    Configure the log file before reading any config file: initFlowrConfig can fail to read
+    an existing config, and that failure must land in this log file rather than wherever
+    electron-log would resolve a path from on its first write.
+  */
+  log.transports.file.level = 'verbose'
+  log.transports.file.file = resolve(app.getPath('userData'), 'log.log')
+  log.transports.file.maxSize = 10 * 1024 * 1024
+
+  await initFlowrConfig(migrateUserPreferences)
+
   app.on('session-created', (sess: Session) => {
     sess.protocol.handle('local-file', (request: { url: string }) => {
       const requestedPath = new URL(request.url).pathname;
@@ -88,8 +99,6 @@ async function main() {
       }
     })
   })
-  log.transports.file.level = 'verbose'
-  log.transports.file.file = resolve(app.getPath('userData'), 'log.log')
   setWexondLog(log)
   ipcMain.setMaxListeners(0)
 
