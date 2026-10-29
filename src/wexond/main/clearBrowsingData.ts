@@ -11,13 +11,11 @@ export const clearBrowsingData = async (): Promise<void> => {
     await ses.clearCache()
     await ses.clearStorageData({
       storages: [
-        'appcache',
         'cookies',
         'filesystem',
         'indexdb',
         'localstorage',
         'shadercache',
-        'websql',
         'serviceworkers',
         'cachestorage',
       ],
