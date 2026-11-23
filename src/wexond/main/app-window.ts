@@ -4,7 +4,7 @@ import { Window, windowManager } from 'node-window-manager'
 import { platform } from 'os'
 import { resolve } from 'path'
 import { buildFileUrl } from '../../application-manager/helpers'
-import { WEXOND_PARTITION } from '../../common/partitions'
+import { WEXOND_UI_PARTITION } from '../../common/partitions'
 import { buildPreloadPath } from '../../common/preload'
 import { watchForInactivity } from '../../inactivity/window'
 import { KeyboardMixin } from '../../keyboard/keyboardMixin'
@@ -60,7 +60,7 @@ export class AppWindow extends KeyboardMixin(BrowserWindow) {
         contextIsolation: false,
         experimentalFeatures: false,
         preload: buildPreloadPath('inactivity-preload.js'),
-        partition: WEXOND_PARTITION,
+        partition: WEXOND_UI_PARTITION,
       },
       icon: resolve(app.getAppPath(), 'static/app-icons/icon-wexond.png'),
     })
