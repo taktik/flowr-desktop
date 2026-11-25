@@ -95,7 +95,6 @@ async function main() {
 
   let flowrWindow: FlowrWindow | undefined = undefined
   let browserWindow: BrowserWindow | undefined = undefined
-  // A pending clearing of the UI session; reopening waits for it to finish.
   let clearingUiSession: Promise<void> | undefined = undefined
 
   const gotTheLock = app.requestSingleInstanceLock()
@@ -146,13 +145,7 @@ async function main() {
     flowrWindow?.hide()
 
     if (options.clearBrowsingDataAtClose) {
-      /*
-        The UI session holds the history, favicons and bookmarks, so it has to
-        be cleared too. Wait for the window to be gone, as clearing storage
-        under a live one breaks its rendering, and skip it should another
-        window have been opened meanwhile. This also covers closing after
-        inactivity, which never goes through the renderer's own clearing.
-      */
+      // Once the window is gone, so it is never cleared under a live one.
       browserWindow.once('closed', () => {
         if (browserWindow) return
         clearingUiSession = clearBrowsingData(true).finally(() => {

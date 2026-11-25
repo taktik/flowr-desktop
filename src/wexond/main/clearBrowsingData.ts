@@ -15,17 +15,9 @@ const STORAGES: Electron.ClearStorageDataOptions['storages'] = [
 ]
 
 /**
- * Clear browsing data.
- *
- * Both sessions hold some: the tabs' one what they browsed, the UI's one the
- * history, favicons and bookmarks. Those are nedb databases, and although
- * they are declared with a file name, webpack resolves nedb's `browser` field
- * for the renderer, so they are really stored through localforage — in the UI
- * session's IndexedDB, not on disk.
- *
- * @param includeInterface also clear the UI session. Callers must pass true
- *                         only once no browser window is left: clearing
- *                         storage under a live window breaks its rendering.
+ * Clear browsing data. The UI session holds the history, favicons and bookmarks
+ * (nedb keeps them in its IndexedDB), so pass includeInterface to clear it too —
+ * only once no browser window is left, as clearing under a live one breaks it.
  */
 export const clearBrowsingData = async (includeInterface = false): Promise<void> => {
   const partitions = includeInterface

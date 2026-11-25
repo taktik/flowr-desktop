@@ -1,9 +1,8 @@
 const WEXOND_PARTITION = 'persist:view'
 
 /**
- * The UI (app.html) keeps a session of its own: sharing the tabs' partition let
- * Chromium place it in a renderer spawned for a tab, where Node is never
- * bootstrapped, leaving `require` undefined and the window blank.
+ * The UI keeps its own session: sharing the tabs' partition let Chromium run
+ * app.html in a node-less process, leaving `require` undefined and a blank window.
  */
 const WEXOND_UI_PARTITION = 'persist:wexond-ui'
 
