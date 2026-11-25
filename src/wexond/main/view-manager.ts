@@ -47,7 +47,7 @@ export class ViewManager {
 
         if (force) this.isHidden = false
       },
-      'clear-browsing-data': clearBrowsingData,
+      'clear-browsing-data': () => void clearBrowsingData(),
       'browserview-destroy': (e: Electron.IpcMessageEvent, id: number) => {
         this.destroy(id)
       },

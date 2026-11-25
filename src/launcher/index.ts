@@ -95,6 +95,8 @@ async function main() {
 
   let flowrWindow: FlowrWindow | undefined = undefined
   let browserWindow: BrowserWindow | undefined = undefined
+  // A pending clearing of the UI session; reopening waits for it to finish.
+  let clearingUiSession: Promise<void> | undefined = undefined
 
   const gotTheLock = app.requestSingleInstanceLock()
 
@@ -120,6 +122,7 @@ async function main() {
   ): Promise<void> => {
 
     browserWindow?.close()
+    await clearingUiSession
     if (!remoteModuleInitialized) {
       initialize()
       remoteModuleInitialized = true
@@ -141,6 +144,22 @@ async function main() {
     browserWindow.webContents.focus()
 
     flowrWindow?.hide()
+
+    if (options.clearBrowsingDataAtClose) {
+      /*
+        The UI session holds the history, favicons and bookmarks, so it has to
+        be cleared too. Wait for the window to be gone, as clearing storage
+        under a live one breaks its rendering, and skip it should another
+        window have been opened meanwhile. This also covers closing after
+        inactivity, which never goes through the renderer's own clearing.
+      */
+      browserWindow.once('closed', () => {
+        if (browserWindow) return
+        clearingUiSession = clearBrowsingData(true).finally(() => {
+          clearingUiSession = undefined
+        })
+      })
+    }
 
     browserWindow.on('close', () => {
       if (browserWindow && flowrWindow) {
@@ -193,7 +212,7 @@ async function main() {
         const userPreferencesMerged = mergeWith({}, DEFAULT_FRONTEND_STORE, currentFlowrStore, desktopConfig.userPreferences, (a, b) => b === null || b === '' ? a : undefined)
         flowrWindow.initStore(userPreferencesMerged, desktopConfig.player)
         if (flowrWindow.store.get('clearAppDataOnStart')) {
-          await clearBrowsingData()
+          await clearBrowsingData(!browserWindow)
         }
         if (flowrWindow.store.get('enableIdCardReader')) {
           BeIDProcessHandler.init(flowrWindow.webContents)
@@ -232,8 +251,7 @@ async function main() {
   await app.whenReady()
   void onReady()
 
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  ipcMain.on('clear-application-data', clearBrowsingData)
+  ipcMain.on('clear-application-data', () => void clearBrowsingData(!browserWindow))
 
   app.on('window-all-closed', () => {
     applicationManager.destroy()
